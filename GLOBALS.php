@@ -12,6 +12,8 @@ class AppData {
     public static string $DOCROOT = $_SERVER['DOCUMENT_ROOT'];
     public static string $APPNAME = "";
     public static string $VERSION = "";
+
+    AppData::$_['xAuth']['SESSION_OPTIONS'] = ["gc_maxlifetime"=>43200, "cookie_lifetime"=>43200];
 }
 
 /**
