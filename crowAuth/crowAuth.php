@@ -45,4 +45,48 @@ class crowAuth {
  *      (?) Test 2FA code
  *      (?) Set (Stay Logged In) cookie
  *      Set user data in session memory
+ * 
+ *  Secure Credential Storage: first, test for Apache VirtualHost-set values, then check for an ini just outside the webroot.
+ *  example ini:
+ * 
+        [database]
+            host = localhost
+            dbname = mydatabase
+            username = myuser
+            password = 'your_secure_password'
+ *
+        $configPath = __DIR__ . '/../config/db_config.ini'; // Adjust path as needed
+        if (!file_exists($configPath)) {
+            die("Configuration file not found.");
+        }
+        $dbSettings = parse_ini_file($configPath, true);
+        if (!$dbSettings) {
+            die("Failed to parse configuration file.");
+        }
+        $dbHost = $dbSettings['database']['host'];
+        $dbName = $dbSettings['database']['dbname'];
+        $dbUser = $dbSettings['database']['username'];
+        $dbPass = $dbSettings['database']['password'];
+ * 
+        <VirtualHost *:80>
+            ServerName yourdomain.com
+            DocumentRoot /var/www/html
+
+            # Define PHP values for database connection
+            php_value mysql.default_user myusername
+            php_value mysql.default_password mypassword
+            php_value mysql.default_host localhost
+
+            # Other configurations...
+        </VirtualHost>
+ * 
+        // PHP will use the defaults set in Apache configuration
+        $db = mysqli_connect();
+        // Or explicitly:
+        // $db = mysqli_connect(ini_get("mysql.default_user"), ini_get("mysql.default_password"), ini_get("mysql.default_host"));
+
+        if (!$db) {
+            die("Connection failed: " . mysqli_connect_error());
+        }
+ * 
  */
