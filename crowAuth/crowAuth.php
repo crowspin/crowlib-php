@@ -89,4 +89,8 @@ class crowAuth {
             die("Connection failed: " . mysqli_connect_error());
         }
  * 
+ * Other thing I need to consider is login method. Will we do standard html forms and post/get type stuff, or will we do something new
+ * and finally implement a JS XMLHttpRequest background communication system?
+ * Will we send this project off with our notification system baked in, or save that off for speed's sake?
+ * This is a good time to remember the note in task-tree's readme.
  */
