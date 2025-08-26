@@ -1,20 +1,33 @@
 <?php
-//Set true for debug output, logging. Insecure, not for deployment!
-const CROWLIB_DEBUG_MODE = true;
+
+namespace crow;
 
 /**
- * Storage for predefined application data, like name and version.
- * HOSTNAME uses no trailing slash, DOCROOT is alias for $_SERVER['DOCUMENT_ROOT']
- * APPNAME and VERSION relate to the app this will be used in (for logging I think.)
+ * Set true for debug output, logging. Insecure, not for deployment!
+ * @var bool
  */
-class AppData {
-    public static string $HOSTNAME = ""; //No trailing slash!
-    public static string $DOCROOT = $_SERVER['DOCUMENT_ROOT'];
-    public static string $APPNAME = "";
-    public static string $VERSION = "";
+const DEBUG_MODE = true;
 
-    AppData::$_['xAuth']['SESSION_OPTIONS'] = ["gc_maxlifetime"=>43200, "cookie_lifetime"=>43200];
-}
+/**
+ * Hostname of current application without trailing slash. Used for redirects primarily.
+ * @var string
+ */
+const HOSTNAME = "";
+
+/**
+ * Shorthand for web root, mostly because of how many ways there are to obtain that string; I might change how this is assigned later. No trailing slash.
+ * @var string
+ */
+const DOCROOT = $_SERVER['DOCUMENT_ROOT'];
+
+const APPNAME = "";
+const VERSION = "";
+
+/**
+ * Options array for session_start calls. Not really necessary because it'll only be called once, but I'd rather have it in GLOBALS for easy reconfiguration later.
+ * @var array
+ */
+const SESSION_OPTIONS = ["gc_maxlifetime"=>43200, "cookie_lifetime"=>43200];
 
 /**
  * Storage for application configuration data.
