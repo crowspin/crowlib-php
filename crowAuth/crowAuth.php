@@ -1,16 +1,14 @@
-<?
+<?php
 
-require_once "../f/example.php";
+namespace crow\Auth;
 
-class crowAuth {
-    public static function tryLogin($username, $password, $database_id = 0){
-        #if you can't get the database, error out of session
-        #query database for username
-            #if query fails, error out of session, push note in log.
-            #if not found, error out of session, push note in log.
-        crowLib\example();
-    }
+function tryLogin($username, $password, $database_id = 0){
+    #if you can't get the database, error out of session
+    #query database for username
+        #if query fails, error out of session, push note in log.
+        #if not found, error out of session, push note in log.
 }
+
 
 /**
  * This refactor is going to be a bigger headache than I thought. I was going to go file by file, but

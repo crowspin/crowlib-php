@@ -34,7 +34,7 @@ function openSession(): bool {
 function closeSession($destination = "/login"): never {
     $_SESSION = [];
     session_destroy();
-    //... xAuth line rel. PHPEXP (value unclear)
+    //! ... xAuth line rel. PHPEXP (value unclear)
     redirect($destination);
 }
 
@@ -42,12 +42,13 @@ function closeSession($destination = "/login"): never {
  * A shorthand so I can forget about needing to exit() after a header() redirect.
  * Supplied path MUST use a leading slash unless intent is to redirect to root index.
  * @param string $path The URI where users should be redirected to.
+ * @return never
  */
 function redirect($path = ""): never {
-    //xPHP::log("-> `$uri`");
+    //! xPHP::log("-> `$uri`");
     if ($path != "/" && $path[0] != '/'){
         $path = "";
-        //log misuse
+        //! log misuse
     }
     header("Location: " . HOSTNAME . $path);
     exit();
@@ -57,9 +58,10 @@ function redirect($path = ""): never {
  * An alternate shorthand so I can forget about needing to exit() after a header() redirect.
  * We have this second redirect option because the first was adjusted to accept local paths while assuming use of `crow\HOSTNAME`.
  * @param string $uri The URI where users should be redirected to.
+ * @return never
  */
 function redirect_external($url): never {
-    //xPHP::log("-> `$uri`");
+    //! xPHP::log("-> `$uri`");
     header("Location: $url");
     exit();
 }
