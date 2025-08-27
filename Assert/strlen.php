@@ -1,6 +1,6 @@
 <?php
 
-namespace crow;
+namespace crow\Assert;
 
 /**
  * Confirms string length is between `$min` and `$max`, **inclusive**.
@@ -8,8 +8,8 @@ namespace crow;
  * @param int $min The minimum length of the string
  * @param int $max The maximum length of the string
  */
-function assert_strlen($string, $min = 0, $max = 0): bool {
-    $stlen = strlen($string);
+function strlen($string, $min = 0, $max = 0): bool {
+    $stlen = \strlen($string);
     if ($stlen > $max || $stlen < $min) return false;
     else return true;
 }

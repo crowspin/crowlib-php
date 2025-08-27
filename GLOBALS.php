@@ -10,6 +10,7 @@ const DEBUG_MODE = true;
 
 /**
  * Hostname of current application without trailing slash. Used for redirects primarily.
+ * Ensure this is an HTTP***S*** link, not just HTTP.
  * @var string
  */
 const HOSTNAME = "";
