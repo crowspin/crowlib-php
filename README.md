@@ -8,4 +8,8 @@ Bad news is that I couldn't find any of the project exports I could've sworn tha
 
 Sweet! Found it all, got the repoes fixed with the latest gitlab deployment, fixed the submodule linkage. My big project is saved! Now I can work on this. Just gonna quickly take a couple more notes about how that happened for next time because this gitlab deployment is already on the verge of being phased out, and then I can make a gitignore for the base files and the refactoring can begin!
 
-It is an incredibly demoralizing thing to look at your own codebase, something you spent 6 hours a day working on every day for two years, and not be able to know what half of it does or why. It's even worse when you go to try just making something from scratch and to realize you can't even remember how to link a stylesheet to a website. Two years away really does have a cost to it. And boy does it sting.
+It is an incredibly demoralizing thing to look at your own codebase, something you spent 6 hours a day working on every day for two years, and not be able to know what half of it does or why. It's even worse when you go to try just making something from scratch and to realize you can't even remember how to link a stylesheet to a website. Two years away really does have a cost to it. And boy does it sting.  
+
+Other thing I need to consider is login method. Will we do standard html forms and post/get type stuff, or will we do something new and finally implement a JS XMLHttpRequest background communication system?  
+Will we send this project off with our notification system baked in, or save that off for speed's sake?  
+This is a good time to remember the note in task-tree's readme.  
