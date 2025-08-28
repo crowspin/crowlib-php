@@ -4,7 +4,7 @@ namespace crow\SQL;
 
 /** An iterable containing the results of your query. Rows are keyed (0-x), Values per row are keyed BOTH (0-x) AND by column name via reference. */
 class Data extends \ArrayObject {
-
+    
 }
 
 
