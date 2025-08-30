@@ -13,3 +13,5 @@ It is an incredibly demoralizing thing to look at your own codebase, something y
 Other thing I need to consider is login method. Will we do standard html forms and post/get type stuff, or will we do something new and finally implement a JS XMLHttpRequest background communication system?  
 Will we send this project off with our notification system baked in, or save that off for speed's sake?  
 This is a good time to remember the note in task-tree's readme.  
+
+For reference, I did plan to work on this yesterday while I was on the plane. I just didn't know I wouldn't have any wifi, and that consequently the VSCode Remote Development / VSCode Server environment I set up through my HASS deployment wouldn't be accessible. Only a slight waste of effort there.  

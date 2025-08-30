@@ -35,4 +35,7 @@ function tryLogin($username, $password, $database_id = 0){
  *      (?) Test 2FA code
  *      (?) Set (Stay Logged In) cookie
  *      Set user data in session memory
+ * 
+ * Want to add environment variable support
+ * Want to add "Remember me" that will stow an SLI-like cookie with uuid to compare against database in place of alternate 2FA authenticator
  */

@@ -4,28 +4,65 @@ namespace crow\SQL;
 
 /** An iterable containing the results of your query. Rows are keyed (0-x), Values per row are keyed BOTH (0-x) AND by column name via reference. */
 class Data extends \ArrayObject {
-    
+    /** `True` if query succeeded, `false` if there was an error or if the query was bad. */
+    public bool $success = false;
+
+    /** The last function error number obtained, `0` meaning no errors. */
+    public int $errno = 0;
+
+    /** The last function error, empty if no error. */
+    public string $error = "";
+
+    /** An array keyed 0-x containing the names of the columns in order. */
+    public array $headers = array();
+
+    function __construct($return_value, $mysqli_errno, $mysqli_error){
+        parent::__construct();
+        $this->errno = $mysqli_errno;
+        $this->error = $mysqli_error;
+
+        if ($this->mysqli_errno || !$return_value) return;
+        $this->success = true;
+        if (is_bool($return_value)) return;
+        $header_info = $return_value->fetch_fields();
+
+        for ($i = 0; $i < count($header_info); $i++){
+            $this->headers[$i] = $header_info[$i]->name;
+            //if (empty($this->keyCol) && $header_info[$i]->flags & 2) $this->keyCol = $header_info[$i]->name;
+        }
+
+        //if (empty($this->keyCol)) foreach ($header_info as $col) if ($col->flags & 4){
+        //    $this->keyCol = $col->name;
+        //    break;
+        //}
+
+        for ($i = 0; $i < $return_value->num_rows; $i++){
+            $this[$i] = array();
+            $row = $return_value->fetch_row();
+            for ($j = 0; $j < count($row); $j++){
+                $this[$i][$j] = $row[$j];
+                $this[$i][$this->headers[$j]] = &$this[$i][$j];
+                //if (!empty($this->keyCol) && $this->headers[$j] == $this->keyCol) $this->keys[$row[$j]] = $i;
+            }
+        }
+    }
 }
 
 
 
 /*
-    /**
-     * The last function error number obtained, `0` meaning no errors.
-     /
-    public int $mysqli_errno = 0;
-    /**
-     * The last function error, empty if no error.
-     /
-    public string $mysqli_error = "";
-    /**
-     * An array keyed 0-x containing the names of the columns in order.
-     /
-    public array $headers = array();
-    /**
-     * `True` if query succeeded, `false` if there was an error or if the query was bad.
-     /
-    public bool $success = false;
+
+Actively struggling to figure out the use of the key/map/k system I have below here
+I'm *pretty* sure that it's about ease of search?
+So if we fetch a table of users, it'll probably be indexed by id#
+but id# doesn't relate to username
+so if we map to username, we can do the map operation once and then search the results more quickly?
+So then the idea is that the keys and intrinsic arrays both are collections of rows, but the intrinsic array is keyed in the order recieved from the server (so in an unreliable order), and the
+keys array (I hate the old name scheme) is searchable by values. So like keys[xer01ne][email] instead of foreach keys -> if username == xer01ne -> access [email]
+
+Think I want to hold the original copy in a private array and affect change on the accessible (intrinsic) array? Think about that more tommorrow.
+
+    
     /**
      * Name of the column that `map` and `k` will use to index the results.
      /
@@ -34,12 +71,6 @@ class Data extends \ArrayObject {
      * The map of cell values to result indexes.
      /
     private array $keys = [];
-
-
-
-
-
-
 
 
 
