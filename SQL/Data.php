@@ -26,23 +26,22 @@ class Data extends \ArrayObject {
         if (is_bool($return_value)) return;
         $header_info = $return_value->fetch_fields();
 
+        //$primary_key_column = "";
+        //$unique_key_column = "";
+
         for ($i = 0; $i < count($header_info); $i++){
             $this->headers[$i] = $header_info[$i]->name;
-            //if (empty($this->keyCol) && $header_info[$i]->flags & 2) $this->keyCol = $header_info[$i]->name;
+            //if ($header_info[$i]->flags & 2 && empty($primary_key_column)) $primary_key_column = $header_info[$i]->name;
+            //if ($header_info[$i]->flags & 4 && empty($unique_key_column)) $unique_key_column = $header_info[$i]->name;
         }
 
-        //if (empty($this->keyCol)) foreach ($header_info as $col) if ($col->flags & 4){
-        //    $this->keyCol = $col->name;
-        //    break;
-        //}
+        //$this->key_column = (!empty($primary_key_column))?$primary_key_column:$unique_key_column;
 
         for ($i = 0; $i < $return_value->num_rows; $i++){
             $this[$i] = array();
             $row = $return_value->fetch_row();
             for ($j = 0; $j < count($row); $j++){
-                $this[$i][$j] = $row[$j];
-                $this[$i][$this->headers[$j]] = &$this[$i][$j];
-                //if (!empty($this->keyCol) && $this->headers[$j] == $this->keyCol) $this->keys[$row[$j]] = $i;
+                $this[$i][$this->headers[$j]] = $row[$j];
             }
         }
     }
@@ -61,6 +60,21 @@ So then the idea is that the keys and intrinsic arrays both are collections of r
 keys array (I hate the old name scheme) is searchable by values. So like keys[xer01ne][email] instead of foreach keys -> if username == xer01ne -> access [email]
 
 Think I want to hold the original copy in a private array and affect change on the accessible (intrinsic) array? Think about that more tommorrow.
+
+Brain still on vacation. Very worried for first deployment attempt, nothing has been pushed to an actual webserver yet.
+My worry about modifying the intrinsic array was that iteration could have been more complicated, but then if I needed to use a standard for loop I could just foreach array_keys, and the biggest issue would be the need to sync $keyCol before a layered operation.
+In truth, the only value the key in the existing intrinsic array has is indicating the order in which the rows were recieved form the server, and that could still be useful, but not as useful as direct lookup from a primary-key column that retains full iterability.
+
+So we'll recieve the value table from the server, store it in order in a private array, and immediately map it IF a primary or unique key exists. If it doesn't we'll work it as-is.
+Map should allow no-arg to indicate server order, where it'll just key with integers.
+Most of our operations should be returning very few rows though. Is a sort operation really worth while? We did a whole module on sort algorithms. Though, I'm not actually going to sort anything, just affect access keys.. All operations should be n for that reason.
+I don't think I'll need the underlying original copy. And I'm not convinced it's worth the potential confusion to key the array automatically. I ought to just make a one-line call to the map function after getting the results if only for the sake of explicitness.
+Always catching myself trying to optimizse my write speed and sacrificing my own ability to read wtf I'm doing later on. Biggest problem with this refactor. I've been afraid to touch this monolith for ages because it's so integral and also so dense and overcomplicated.
+
+I don't think there's enough value to keeping the integer-access for column identification apart from having a dangerous shorthand. Users should know the names of the columns in the table, and be aware that table structure and organization can change even just with a tweak to the query string.
+I was thinking about having the integers and keyed-column cell values simultaneously as I had done with the columnname accesses in the note right above this, but then iteration over collections of rows would be doubled pointlessly....
+Identification of keyed column in contructor is only really valuable for automatic mapping. If we're requiring users to know the table and manually call for a mapping, then we don't need that. Or really to store the $key_column/$keyCol either (though that could be used still to prevent wasted cycles...)
+Want to read about mysqli_fetch_fields. Worried I'm stripping something valuable in current contructor implementation.
 
     
     /**
