@@ -2,6 +2,7 @@
 
 namespace crow\SQL;
 
+require_once __DIR__ . "../GLOBALS.php";
 require_once __DIR__ . "/Connection.php";
 
 /** A factory for SQLConnection objects. Offers functions for registering and deregistering credentials, and additional logic handling for verification of connection status. */
@@ -28,18 +29,11 @@ class Factory {
         if (!$creds) {
             if ($handle != "default") return false;
             
-            $configPath = \crow\DOCROOT . '/../defaultsql.ini';
-            if (!file_exists($configPath)) {
-                return false;
-            }
-            $dbSettings = parse_ini_file($configPath, true);
-            if (!$dbSettings) {
-                return false;
-            }
-
-            Factory::registerCredentials($handle, $dbSettings['default'], true);
-            $creds = Factory::findCredentials($handle);
-            if (!$creds) return false;
+            if ($creds = Factory::tryLoadingENVCreds()) 
+                Factory::registerCredentials($handle, $creds, true);
+            else if ($creds = Factory::tryLoadingINICreds())
+                Factory::registerCredentials($handle, $creds, true);
+            else return false;
         }
 
         if (isset(Factory::$_Inst[$handle])){
@@ -165,5 +159,43 @@ class Factory {
         Factory::unsetLogic($handle);
         Factory::$_Inst[$handle]->close();
         unset(Factory::$_Inst[$handle]);
+    }
+
+    /**
+     * Attempts to load database credentials from the INI file just outside the webroot.
+     * @return array|false False if load fails or credentials incomplete, otherwise a string-keyed array of credentials.
+     */
+    private static function tryLoadingINICreds(): mixed {
+        $configPath = \crow\DOCROOT . '/../defaultsql.ini';
+        if (!file_exists($configPath)) {
+            return false;
+        }
+        $dbSettings = parse_ini_file($configPath, true);
+        if (
+            !$dbSettings
+            || !$dbSettings['default']
+            || !$dbSettings['default']['hostname']
+            || !$dbSettings['default']['username']
+            || !$dbSettings['default']['password']
+            || !$dbSettings['default']['database']
+        ){
+            return false;
+        }
+
+        return $dbSettings['default'];
+    }
+
+    /**
+     * Attempts to load database credentials from environment variables. Likely set in webserver's \etc\environment or \etc\profile.d.
+     * @return array|false False if environment variables are not set or empty, otherwise a string-keyed array of credentials.
+     */
+    private static function tryLoadingENVCreds(): mixed {
+        $h = getenv(strtoupper(\crow\APPNAME) . '_DB_HOSTNAME');
+        $u = getenv(strtoupper(\crow\APPNAME) . '_DB_USERNAME');
+        $p = getenv(strtoupper(\crow\APPNAME) . '_DB_PASSWORD');
+        $d = getenv(strtoupper(\crow\APPNAME) . '_DB_DATABASE');
+
+        if (!$h || !$u || !$p || !$d) return false;
+        else return ['hostname'=>$h, 'username'=>$u, 'password'=>$p, 'database'=>$d];
     }
 }

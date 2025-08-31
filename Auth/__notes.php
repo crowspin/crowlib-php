@@ -38,4 +38,6 @@ function tryLogin($username, $password, $database_id = 0){
  * 
  * Want to add environment variable support
  * Want to add "Remember me" that will stow an SLI-like cookie with uuid to compare against database in place of alternate 2FA authenticator
+ * Thinking about a table builder class, had something like that in the big-kid project. Not sure how serious that needs to be given that I could just have a script with a collection of 'queries' (statements.)
+ * Want to go around and fix case for all classes, functions, and variables. I like pascal for classes, camel for functions, and snake for variables, and then constants are just all-caps.
  */

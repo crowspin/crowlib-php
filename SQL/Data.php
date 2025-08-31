@@ -16,6 +16,16 @@ class Data extends \ArrayObject {
     /** An array keyed 0-x containing the names of the columns in order. */
     public array $headers = array();
 
+    /** Name of the column we've currently mapped the array to. Held to prevent unnecessary map_to_column operations. */
+    private string $mapped_column = "";
+
+    /**
+     * Accepts a mysqli_result object and aims to make traversal and search just a little simpler. Holds any errors produced from the execution of the query.
+     * @param \mysqli_result $return_value The result object from your query. Will be parsed and restructured.
+     * @param int $mysqli_errno The errno produced from the query, stored here for reference because mysqli class overwrites it.
+     * @param string $mysqli_error The error string produced from the query. Likely empty, but kept for reference.
+     * @return void
+     */
     function __construct($return_value, $mysqli_errno, $mysqli_error){
         parent::__construct();
         $this->errno = $mysqli_errno;
@@ -25,17 +35,9 @@ class Data extends \ArrayObject {
         $this->success = true;
         if (is_bool($return_value)) return;
         $header_info = $return_value->fetch_fields();
-
-        //$primary_key_column = "";
-        //$unique_key_column = "";
-
         for ($i = 0; $i < count($header_info); $i++){
             $this->headers[$i] = $header_info[$i]->name;
-            //if ($header_info[$i]->flags & 2 && empty($primary_key_column)) $primary_key_column = $header_info[$i]->name;
-            //if ($header_info[$i]->flags & 4 && empty($unique_key_column)) $unique_key_column = $header_info[$i]->name;
         }
-
-        //$this->key_column = (!empty($primary_key_column))?$primary_key_column:$unique_key_column;
 
         for ($i = 0; $i < $return_value->num_rows; $i++){
             $this[$i] = array();
@@ -45,117 +47,39 @@ class Data extends \ArrayObject {
             }
         }
     }
-}
-
-
-
-/*
-
-Actively struggling to figure out the use of the key/map/k system I have below here
-I'm *pretty* sure that it's about ease of search?
-So if we fetch a table of users, it'll probably be indexed by id#
-but id# doesn't relate to username
-so if we map to username, we can do the map operation once and then search the results more quickly?
-So then the idea is that the keys and intrinsic arrays both are collections of rows, but the intrinsic array is keyed in the order recieved from the server (so in an unreliable order), and the
-keys array (I hate the old name scheme) is searchable by values. So like keys[xer01ne][email] instead of foreach keys -> if username == xer01ne -> access [email]
-
-Think I want to hold the original copy in a private array and affect change on the accessible (intrinsic) array? Think about that more tommorrow.
-
-Brain still on vacation. Very worried for first deployment attempt, nothing has been pushed to an actual webserver yet.
-My worry about modifying the intrinsic array was that iteration could have been more complicated, but then if I needed to use a standard for loop I could just foreach array_keys, and the biggest issue would be the need to sync $keyCol before a layered operation.
-In truth, the only value the key in the existing intrinsic array has is indicating the order in which the rows were recieved form the server, and that could still be useful, but not as useful as direct lookup from a primary-key column that retains full iterability.
-
-So we'll recieve the value table from the server, store it in order in a private array, and immediately map it IF a primary or unique key exists. If it doesn't we'll work it as-is.
-Map should allow no-arg to indicate server order, where it'll just key with integers.
-Most of our operations should be returning very few rows though. Is a sort operation really worth while? We did a whole module on sort algorithms. Though, I'm not actually going to sort anything, just affect access keys.. All operations should be n for that reason.
-I don't think I'll need the underlying original copy. And I'm not convinced it's worth the potential confusion to key the array automatically. I ought to just make a one-line call to the map function after getting the results if only for the sake of explicitness.
-Always catching myself trying to optimizse my write speed and sacrificing my own ability to read wtf I'm doing later on. Biggest problem with this refactor. I've been afraid to touch this monolith for ages because it's so integral and also so dense and overcomplicated.
-
-I don't think there's enough value to keeping the integer-access for column identification apart from having a dangerous shorthand. Users should know the names of the columns in the table, and be aware that table structure and organization can change even just with a tweak to the query string.
-I was thinking about having the integers and keyed-column cell values simultaneously as I had done with the columnname accesses in the note right above this, but then iteration over collections of rows would be doubled pointlessly....
-Identification of keyed column in contructor is only really valuable for automatic mapping. If we're requiring users to know the table and manually call for a mapping, then we don't need that. Or really to store the $key_column/$keyCol either (though that could be used still to prevent wasted cycles...)
-Want to read about mysqli_fetch_fields. Worried I'm stripping something valuable in current contructor implementation.
-
-    
-    /**
-     * Name of the column that `map` and `k` will use to index the results.
-     /
-    private string $keyCol = "";
-    /**
-     * The map of cell values to result indexes.
-     /
-    private array $keys = [];
-
-
 
     /**
-     * Accepts an `xSQL` connection for error checking and the return value of the query for 
-     *      formatting. Automatically maps the result set based on a primary key or unique 
-     *      key. If the table contains both, then Primary will be used. If the table contains 
-     *      neither, the table will not be mapped until you call `map($colName)`.
-     * @param xSQL $sql The `xSQL` object on which the query was run.
-     * @param mysqli_return $return The server response to the query.
-     * @return xSQLData A response object generated from the query. Failure can be detected 
-     *      by checking it's `success` member variable.
-     /
-    function __construct(&$sql, $return){
-        parent::__construct();
-        $this->mysqli_errno = $sql->errno;
-        $this->mysqli_error = $sql->error;
+     * Before this function is called, the data in the array is keyed by index. First item in the mysqli_return is at `$this[0]`.  
+     * After this function is called the array will no longer be keyed by index, but instead by the values in the specified column.
+     * So if you had a query call for a row from a user table, you might `map_to_column("username")`, and then you might use that for a login process like `$email = $this[$username]["email"]`.
+     * The intent here is that there isn't much value in looking at the table of returned rows based on it's order from the server. This process doesn't change that order either,
+     * just makes looking up which row in the return you want to work with easier.  
+     * Call this function with an empty string or without an argument to undo the mapping.  
+     * Decision was made to remove automatic mapping to primary_key or unique_key columns because that was causing confusion. Better to have it called in sequence so you can see what column is mapped while you're reading the code.
+     * @param string $columnName Must either be an empty string (default) or a valid column name.
+     * @return bool False if the column name provided is invalid, otherwise true.
+     */
+    public function map_to_column($columnName = "") : bool {
+        if ($this->mapped_column == $columnName) return true;
 
-        if ($this->mysqli_errno || !$return) return $this;
-        $this->success = true;
-        if (is_bool($return)) return $this;
-        $headinfo = $return->fetch_fields();
-
-        for ($it = 0; $it < count($headinfo); $it++){
-            $this->headers[$it] = $headinfo[$it]->name;
-            if (empty($this->keyCol) && $headinfo[$it]->flags & 2) $this->keyCol = $headinfo[$it]->name;
-        }
-        if (empty($this->keyCol)) foreach ($headinfo as $col) if ($col->flags & 4){
-            $this->keyCol = $col->name;
-            break;
-        }
-        for ($it = 0; $it < $return->num_rows; $it++){
-            $this[$it] = array();
-            $row = $return->fetch_row();
-            for ($sit = 0; $sit < count($row); $sit++){
-                $this[$it][$sit] = $row[$sit];
-                $this[$it][$this->headers[$sit]] = &$this[$it][$sit];
-                if (!empty($this->keyCol) && $this->headers[$sit] == $this->keyCol) $this->keys[$row[$sit]] = $it;
+        if (!empty($columnName)){
+            $test = false;
+            foreach ($this->headers as &$v) if ($columnName == $v) {
+                $test = true;
+                break;
             }
+            if (!$test) return false;
         }
-    }
-    /**
-     * Fetches the row in your `xSQLData` object whose mapped column cell matches the 
-     *      supplied value.
-     * @param mixed $id The value to be searched.
-     * @return false|array Returns false if the `xSQLData` object is not mapped, or if 
-     *      the supplied `$id` is not found. Otherwise, returns a result row.
-     /
-    function k($id){
-        if (!isset($this->keyCol) || !isset($this->keys[$id])) return false;
-        return $this[$this->keys[$id]];
-    }
-    /**
-     * Manually sets the column you want to use to map your `xSQLData` object.
-     * @param mixed $colName the column name you want to use as an index.
-     * @return boolean Returns false if the supplied value `!isset`, or if it isn't 
-     *      found in the list of column names (xSQLData->headers). Otherwise, maps the 
-     *      results and returns true.
-     /
-    function map($colName){
-        if (!isset($colName)) return false;
 
-        $test = false;
-        foreach ($this->headers as &$v) if ($colName == $v) {
-            $test = true;
-            break;
+        $this->mapped_column = $columnName;
+
+        $newArray = [];
+        foreach ($this as $v){
+            if (!empty($columnName)) $newArray[$v[$columnName]] = $v;
+            else $newArray[] = $v;
         }
-        if (!$test) return false;
+        $this->exchangeArray($newArray);
 
-        $this->keyCol = $colName;
-        foreach ($this as $k=>&$v) $this->keys[$v[$colName]] = $k;
         return true;
     }
-*/
+}
