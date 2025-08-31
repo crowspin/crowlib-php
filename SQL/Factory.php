@@ -2,7 +2,7 @@
 
 namespace crow\SQL;
 
-require_once __DIR__ . "../GLOBALS.php";
+require_once __DIR__ . "/../GLOBALS.php";
 require_once __DIR__ . "/Connection.php";
 
 /** A factory for SQLConnection objects. Offers functions for registering and deregistering credentials, and additional logic handling for verification of connection status. */

@@ -19,9 +19,9 @@ const HOSTNAME = "";
  * Shorthand for web root, mostly because of how many ways there are to obtain that string; I might change how this is assigned later. No trailing slash.
  * @var string
  */
-const DOCROOT = $_SERVER['DOCUMENT_ROOT'];
+define("crow\DOCROOT", $_SERVER['DOCUMENT_ROOT']);
 
-const APPNAME = "";
+const APPNAME = "TaskTree";
 const VERSION = "";
 
 /**
