@@ -6,14 +6,14 @@ namespace crow;
  * Set true for debug output, logging. Insecure, not for deployment!
  * @var bool
  */
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 /**
  * Hostname of current application without trailing slash. Used for redirects primarily.
  * Ensure this is an HTTP***S*** link, not just HTTP.
  * @var string
  */
-const HOSTNAME = "https://crowspin.dev";
+const HOSTNAME = "";
 
 /**
  * Shorthand for web root, mostly because of how many ways there are to obtain that string; I might change how this is assigned later. No trailing slash.
@@ -21,7 +21,7 @@ const HOSTNAME = "https://crowspin.dev";
  */
 define("crow\DOCROOT", $_SERVER['DOCUMENT_ROOT']);
 
-const APPNAME = "TaskTree";
+const APPNAME = "";
 const VERSION = "";
 
 /**
