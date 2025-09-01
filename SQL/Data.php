@@ -31,7 +31,7 @@ class Data extends \ArrayObject {
         $this->errno = $mysqli_errno;
         $this->error = $mysqli_error;
 
-        if ($this->mysqli_errno || !$return_value) return;
+        if ($this->errno || !$return_value) return;
         $this->success = true;
         if (is_bool($return_value)) return;
         $header_info = $return_value->fetch_fields();

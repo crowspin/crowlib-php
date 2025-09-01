@@ -42,7 +42,7 @@ class Factory {
             return Factory::$_Inst[$handle];
         } else {
             $connection = new Connection($creds);
-            if ($connection->connect_errno == 0){
+            if ($connection->conn_errno == 0){
                 Factory::$_Inst[$handle] = $connection;
                 return Factory::$_Inst[$handle];
             } else return false;
@@ -144,7 +144,7 @@ class Factory {
         if ($creds == []) return false;
 
         $conn = new Connection($creds);
-        if ($conn->connect_errno == 0){
+        if ($conn->conn_errno == 0){
             Factory::$_Inst[$handle] = $conn;
             return true;
         } else return false;

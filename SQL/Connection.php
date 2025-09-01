@@ -10,7 +10,7 @@ class Connection extends \mysqli {
     private int $last_interaction;
 
     /** @var int Connection error number for *this instance*. Zero means no errors. */
-    public int $connect_errno;
+    public int $conn_errno;
 
     /**
      * Produces a SQLConnection object using a credential array.
@@ -29,7 +29,7 @@ class Connection extends \mysqli {
          * They were commented out, not sure what we had used them for previously.
          */
         parent::__construct($credentials["hostname"], $credentials["username"], $credentials["password"], $credentials["database"]);
-        $this->connect_errno = mysqli_connect_errno();
+        $this->conn_errno = mysqli_connect_errno();
     }
 
     /**

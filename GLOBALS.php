@@ -13,7 +13,7 @@ const DEBUG_MODE = true;
  * Ensure this is an HTTP***S*** link, not just HTTP.
  * @var string
  */
-const HOSTNAME = "";
+const HOSTNAME = "https://crowspin.dev";
 
 /**
  * Shorthand for web root, mostly because of how many ways there are to obtain that string; I might change how this is assigned later. No trailing slash.
