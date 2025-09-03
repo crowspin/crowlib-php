@@ -12,11 +12,11 @@ require_once __DIR__ . "/../GLOBALS.php";
  */
 function open(): bool {
     if (\crow\DEBUG_MODE){
-        ini_set('display_errors', 1); 
+        ini_set("display_errors", 1); 
         error_reporting(E_ALL|E_STRICT);
     }
 
-    if (empty($_SERVER['HTTPS'])) \crow\Header\redirect();
+    if (empty($_SERVER["HTTPS"])) \crow\Header\redirect();
     else header("Strict-Transport-Security: max-age=16070400; includeSubDomains;");
 
     if (session_status() != PHP_SESSION_NONE) return true;

@@ -1,16 +1,16 @@
 <?php
 
-namespace crow\SQL;
+namespace crow\IO;
 
 require_once __DIR__ . "/../GLOBALS.php";
-require_once __DIR__ . "/Connection.php";
+require_once __DIR__ . "/SQLConnection.php";
 
 /** A factory for SQLConnection objects. Offers functions for registering and deregistering credentials, and additional logic handling for verification of connection status. */
-class Factory {
-    /** @var Connection[] $_Inst Contains all SQLConnection instances. */
+class SQLFactory {
+    /** @var SQLConnection[] $_Inst Contains all SQLConnection instances. */
     private static array $_Inst;
 
-    /** @var array[] $_creds Contains all SQLConnection credentials in same fashion as $_SESSION['SQL'], but without persistence. */
+    /** @var array[] $_creds Contains all SQLConnection credentials in same fashion as $_SESSION["SQL"], but without persistence. */
     private static array $_Creds;
 
     /** @var callable[] $_Logic contains callable function references which determine conneciton validity. */
@@ -22,29 +22,29 @@ class Factory {
      * we then check if the Connection has already been made. If it has, then we test to ensure validity before returning it. If
      * it hasn't, then we make a new one using the available credentials.
      * @param mixed $handle Hashable used to refer to your Connection.
-     * @return bool|Connection Either False, or a valid Connection.
+     * @return bool|SQLConnection Either False, or a valid Connection.
      */
-    public static function get($handle = "default"): false | Connection {
-        $creds = Factory::findCredentials($handle);
+    public static function get($handle = "default"): false | SQLConnection {
+        $creds = SQLFactory::findCredentials($handle);
         if (!$creds) {
             if ($handle != "default") return false;
             
-            if ($creds = Factory::tryLoadingENVCreds()) 
-                Factory::registerCredentials($handle, $creds, true);
-            else if ($creds = Factory::tryLoadingINICreds())
-                Factory::registerCredentials($handle, $creds, true);
+            if ($creds = SQLFactory::tryLoadingENVCreds()) 
+                SQLFactory::registerCredentials($handle, $creds, true);
+            else if ($creds = SQLFactory::tryLoadingINICreds())
+                SQLFactory::registerCredentials($handle, $creds, true);
             else return false;
         }
 
-        if (isset(Factory::$_Inst[$handle])){
-            if (!Factory::testLogic($handle)) return false;
-            if (!Factory::ping($handle)) return false;
-            return Factory::$_Inst[$handle];
+        if (isset(SQLFactory::$_Inst[$handle])){
+            if (!SQLFactory::testLogic($handle)) return false;
+            if (!SQLFactory::ping($handle)) return false;
+            return SQLFactory::$_Inst[$handle];
         } else {
-            $connection = new Connection($creds);
+            $connection = new SQLConnection($creds);
             if ($connection->conn_errno == 0){
-                Factory::$_Inst[$handle] = $connection;
-                return Factory::$_Inst[$handle];
+                SQLFactory::$_Inst[$handle] = $connection;
+                return SQLFactory::$_Inst[$handle];
             } else return false;
             
         }
@@ -62,8 +62,8 @@ class Factory {
      * @return string $handle
      */
     public static function registerCredentials($handle, $credentials, $storeInSession): string {
-        if ($storeInSession) $_SESSION['SQL'][$handle] = $credentials;
-        else Factory::$_Creds[$handle] = $credentials;
+        if ($storeInSession) $_SESSION["SQL"][$handle] = $credentials;
+        else SQLFactory::$_Creds[$handle] = $credentials;
         return $handle;
     }
 
@@ -74,16 +74,16 @@ class Factory {
      * @return array Array containing credentials for Connection
      */
     public static function findCredentials($handle): array {
-        if (!empty(Factory::$_Creds[$handle])){
-            $creds = Factory::$_Creds[$handle];
-        } else if (!empty($_SESSION['SQL'][$handle])){
-            $creds = $_SESSION['SQL'][$handle];
+        if (!empty(SQLFactory::$_Creds[$handle])){
+            $creds = SQLFactory::$_Creds[$handle];
+        } else if (!empty($_SESSION["SQL"][$handle])){
+            $creds = $_SESSION["SQL"][$handle];
         } else return [];
 
-        if (empty($creds['hostname'])
-            || empty($creds['username'])
-            || empty($creds['password'])
-            || empty($creds['database'])
+        if (empty($creds["hostname"])
+            || empty($creds["username"])
+            || empty($creds["password"])
+            || empty($creds["database"])
         ) return [];
         else return $creds;
     }
@@ -94,7 +94,7 @@ class Factory {
      * @return void
      */
     public static function clearCredentials($handle): void {
-        unset($_SESSION['SQL'][$handle], Factory::$_Creds[$handle]);
+        unset($_SESSION["SQL"][$handle], SQLFactory::$_Creds[$handle]);
     }
 
     /**
@@ -109,7 +109,7 @@ class Factory {
      * @return void
      */
     public static function registerLogic($handle, &$logic): void {
-        Factory::$_Logic[$handle] = $logic;
+        SQLFactory::$_Logic[$handle] = $logic;
     }
 
     /**
@@ -118,8 +118,8 @@ class Factory {
      * @return bool True if 'connection is valid', False if logic was set and returns false.
      */
     public static function testLogic($handle): bool {
-        if (isset(Factory::$_Logic[$handle])){
-            return call_user_func(Factory::$_Logic[$handle]);
+        if (isset(SQLFactory::$_Logic[$handle])){
+            return call_user_func(SQLFactory::$_Logic[$handle]);
         } else return true;
     }
 
@@ -129,7 +129,7 @@ class Factory {
      * @return void
      */
     public static function unsetLogic($handle): void {
-        unset(Factory::$_Logic[$handle]);
+        unset(SQLFactory::$_Logic[$handle]);
     }
     
     /**
@@ -138,14 +138,14 @@ class Factory {
      * @return bool True only if the Connection is still good.
      */
     public static function ping($handle): bool {
-        if (Factory::$_Inst[$handle]->ping()) return true;
+        if (SQLFactory::$_Inst[$handle]->ping()) return true;
         
-        $creds = Factory::findCredentials($handle);
+        $creds = SQLFactory::findCredentials($handle);
         if ($creds == []) return false;
 
-        $conn = new Connection($creds);
+        $conn = new SQLConnection($creds);
         if ($conn->conn_errno == 0){
-            Factory::$_Inst[$handle] = $conn;
+            SQLFactory::$_Inst[$handle] = $conn;
             return true;
         } else return false;
     }
@@ -156,9 +156,9 @@ class Factory {
      * @return void
      */
     public static function destroy($handle): void {
-        Factory::unsetLogic($handle);
-        Factory::$_Inst[$handle]->close();
-        unset(Factory::$_Inst[$handle]);
+        SQLFactory::unsetLogic($handle);
+        SQLFactory::$_Inst[$handle]->close();
+        unset(SQLFactory::$_Inst[$handle]);
     }
 
     /**
@@ -166,23 +166,23 @@ class Factory {
      * @return array|false False if load fails or credentials incomplete, otherwise a string-keyed array of credentials.
      */
     private static function tryLoadingINICreds(): mixed {
-        $configPath = \crow\DOCROOT . '/../defaultsql.ini';
+        $configPath = \crow\DOCROOT . "/../defaultsql.ini";
         if (!file_exists($configPath)) {
             return false;
         }
         $dbSettings = parse_ini_file($configPath, true);
         if (
             !$dbSettings
-            || !$dbSettings['default']
-            || !$dbSettings['default']['hostname']
-            || !$dbSettings['default']['username']
-            || !$dbSettings['default']['password']
-            || !$dbSettings['default']['database']
+            || !$dbSettings["default"]
+            || !$dbSettings["default"]["hostname"]
+            || !$dbSettings["default"]["username"]
+            || !$dbSettings["default"]["password"]
+            || !$dbSettings["default"]["database"]
         ){
             return false;
         }
 
-        return $dbSettings['default'];
+        return $dbSettings["default"];
     }
 
     /**
@@ -190,12 +190,12 @@ class Factory {
      * @return array|false False if environment variables are not set or empty, otherwise a string-keyed array of credentials.
      */
     private static function tryLoadingENVCreds(): mixed {
-        $h = getenv(strtoupper(\crow\APPNAME) . '_DB_HOSTNAME');
-        $u = getenv(strtoupper(\crow\APPNAME) . '_DB_USERNAME');
-        $p = getenv(strtoupper(\crow\APPNAME) . '_DB_PASSWORD');
-        $d = getenv(strtoupper(\crow\APPNAME) . '_DB_DATABASE');
+        $h = getenv(strtoupper(\crow\APPNAME) . "_DB_HOSTNAME");
+        $u = getenv(strtoupper(\crow\APPNAME) . "_DB_USERNAME");
+        $p = getenv(strtoupper(\crow\APPNAME) . "_DB_PASSWORD");
+        $d = getenv(strtoupper(\crow\APPNAME) . "_DB_DATABASE");
 
         if (!$h || !$u || !$p || !$d) return false;
-        else return ['hostname'=>$h, 'username'=>$u, 'password'=>$p, 'database'=>$d];
+        else return ["hostname"=>$h, "username"=>$u, "password"=>$p, "database"=>$d];
     }
 }

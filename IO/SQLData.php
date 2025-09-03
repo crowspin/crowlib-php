@@ -1,9 +1,9 @@
 <?php
 
-namespace crow\SQL;
+namespace crow\IO;
 
 /** An iterable containing the results of your query. Rows are keyed (0-x), Values per row are keyed BOTH (0-x) AND by column name via reference. */
-class Data extends \ArrayObject {
+class SQLData extends \ArrayObject {
     /** `True` if query succeeded, `false` if there was an error or if the query was bad. */
     public bool $success = false;
 

@@ -19,7 +19,7 @@ const HOSTNAME = "";
  * Shorthand for web root, mostly because of how many ways there are to obtain that string; I might change how this is assigned later. No trailing slash.
  * @var string
  */
-define("crow\DOCROOT", $_SERVER['DOCUMENT_ROOT']);
+define("crow\DOCROOT", $_SERVER["DOCUMENT_ROOT"]);
 
 const APPNAME = "";
 const VERSION = "";
@@ -38,8 +38,8 @@ const SESSION_OPTIONS = ["gc_maxlifetime"=>43200, "cookie_lifetime"=>43200];
  * compared against.
  */
 class DefaultConfig { public static array $_ = array(); }
-    DefaultConfig::$_['core'] = [
-        'timezone' => 'America/Vancouver'
+    DefaultConfig::$_["core"] = [
+        "timezone" => "America/Vancouver"
     ];
 
 /**
